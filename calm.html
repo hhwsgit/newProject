@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>四则运算</title>
+    <style>
+        body{
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: skyblue;
+        }
+        #main{
+            margin: 20px auto;
+            width: 800px;
+            text-align: center;
+            background-color: white;
+        }
+        li{
+            width: 100%;
+            height: 20px;
+            list-style: none;
+        }
+        #myform{
+            margin: 20px auto;  
+            width: 80%;
+            text-align: left;
+            text-align: center;
+            /*background-color: skyblue;*/
+        }
+        label{
+            font-size: 14px;
+        }
+        #calm{
+            text-align: left;
+        }
+        li{
+            width: 100%;
+            height: 25px;
+            margin: 2px 0;
+            line-height: 25px;
+            padding: 00px;
+            padding-left: 20PX;
+        }
+        .name{
+            position: absolute;
+            /*left: 700px;*/
+            /*display: inline-block;*/
+            margin-top: 2.5px;
+            width: 85px;
+            height: 20px;
+            /*border: 0;*/
+            line-height: 20px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .liSpan{
+            display: inline-block;
+            width: 120px;
+            height: 20px;
+            /*background-color: white;*/
+            text-indent: 2em;
+            line-height: 20px;
+        }
+        .liSpan1{
+            display: inline-block;
+            width: 240px;
+            height: 20px;
+            line-height: 20px;
+            /*background-color: red;*/
+        }
+        .span{
+            display: inline-block;
+            width: 100px;
+            margin-left: 100px;
+            text-indent: 3em;
+        }
+        #button2{
+            margin: 10px;
+            display: inline-block;
+            width: 95px;
+        }
+        #grade{
+            height: 35px;
+        }
+        #timetable{
+            position: absolute;
+            top: 20px;
+            left: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <label id="label1">请输入您要的范围（默认10）</label>
+        <input type="number" id="cNum"><br>
+        <label id="label2">请输入您要的算式数（默认10）</label>
+        <input type="number" id="nNum">
+        <button id="button1">确认</button>
+        <div id="cLanguage">
+            <button id="simple">简体中文</button>
+            <!--請輸入您要的範圍（默認10）-->
+            <button id="traditional">繁体中文</button>
+            <button id="english">英文</button>
+        </div>
+        <form id="myform">
+            <div id="calm"></div>
+            <button id="button2" style="display: none;">提交</button>
+            <div id="grade" style="display:none;">
+                <span id="contentR">正确题目数为：</span>
+                <span id="numR"></span>
+                <span id="contentW">错误题目数为：</span>
+                <span id="numW"></span>
+            </div>
+        </form>
+    </div>
+    <div id="timetable">
+        <span id="time">点击确认后开始计时</span>
+        <br>
+        <span id="timer"></span>
+    </div>
+    <script>
+        var label1 = document.getElementById('label1');
+        var label2 = document.getElementById('label2');
+        var traditional = document.getElementById('traditional');
+        var simple = document.getElementById('simple');
+        var english = document.getElementById('english');
+        var div = document.getElementById('calm');
+        var n = 0;
+        var asd, nNum, cNum;
+        var button1 = document.getElementById('button1');
+        var button2 = document.getElementById('button2');
+        var grade = document.getElementById("grade");
+        var contentR = document.getElementById("contentR");
+        var contentW = document.getElementById("contentW");
+        var numR = document.getElementById("numR");
+        var numW = document.getElementById("numW");
+        var timetable =document.getElementById("timetable");
+        var time =document.getElementById("time");
+        var timer =document.getElementById("timer");
+        var rpt = [];            // 定义变量存储运算数值（用于判重）
+        var ret;            // 定义存储当前运算式
+        var result = [];         // 定义变量存储结果
+        var result1;        // 存储当前结果
+
+        // 随机符号
+        var str = ['+','-','x','÷'];
+        var sign = function(){
+            // var str = ['+','-','x','÷'];
+            var a =Math.floor(Math.random()*4);
+            return str[a];
+        }
+
+        var Common = function(a,b){
+            var c = a % b;
+            if (c == 0) {
+                return b;
+            } else {
+                return Common(b, c);
+            }
+        }
+
+        // 随机数据(分数和整数)
+        var ranNum = function () {
+            var a, b; 
+            var math = [];
+            var isFraction = Math.floor(Math.random() * 10);
+            // 随机设置为分数
+            if (isFraction > 5) {
+                var divisor;
+                a = Math.floor(Math.random() * cNum);
+                b = Math.floor(Math.random() * cNum + 1);
+                if (a == 0) {
+                    math = 0;
+                } else {
+                    if (a < b) {
+                        divisor = Common(b ,a);
+                        math = "(" + (a/divisor) + "/" + (b/divisor) + ")";
+                    } else if (a > b) {
+                        divisor = Common(a ,b);
+                        math = "(" + (b/divisor) + "/" + (a/divisor) + ")";
+                    } else {
+                        math = 1;
+                    }
+                }
+            } else {
+                a = Math.floor(Math.random() * cNum)
+                math = a;
+            }
+            // console.log(math + "number");
+            return math;
+        }
+
+        // 判断答案
+        var answer = function(a,b){
+            var c;
+            if(a.indexOf("-") == -1){
+                a = a.replace(/'/,"+");
+                console.log(a);
+                console.log(eval(a));
+            }else{
+                a = a.replace(/'/,"-");
+                console.log(a);
+                console.log(eval(a));
+            }
+            a = eval(a);
+            if(a == b ){
+                c = 'right';
+                n++;
+            }else{
+                c = 'wrong';
+            }
+            return c;
+        }
+
+        // 产生运算，随机运算式，放入数组
+        var ranData =function(){
+            // 随机运算式的长度
+            var data = Math.floor(Math.random()*3 + 1);
+            if(cNum >= 100){
+                data = 1;
+            }
+            var str = [];
+            var num1 = ranNum();
+            str.push(num1);
+            var num2;
+            var sin;
+            for(var i = 0; i < data;i++){
+                sin = sign();
+                str.push(sin);
+                num2 = ranNum();
+                if(sin == "÷"){
+                    // 除数为0时，重新赋值
+                    while(num2 == 0){
+                        num2 = ranNum();
+                    }
+                }
+                str.push(num2);
+            }
+            return str;
+        }
+
+        // 将运算时合并成字符串
+        var ranChange =function(data){
+            return data.join('');            
+        }
+
+        // 计算式子的结果
+        var ranRes =function(data){
+            var str = [];
+            // console.log(data);
+            for(var i = 0;i<data.length;i++){
+                if(data[i] == 'x'){
+                    data[i] = '*';
+                }
+                if(data[i] == '÷'){
+                    data[i] = '/';
+                }
+                str.push(data[i]);
+            }          
+            var res = str.join('');
+            return eval(res);
+        }
+        
+        var delsign =function(formula){
+            console.log(formula);
+            var str = ['+','-','x','÷'];
+            var str_i = 0;
+            var temp = [];
+            var left = formula.lastIndexOf("(");
+            var s = formula.split("");
+            console.log(s);
+            var left_n = 0;
+            while(left != -1){
+                left_n++;
+                var right = formula.indexOf(")",left);
+                var right_n = 0;
+                while(right == temp[right_n]){
+                    right = formula.indexOf(")",temp[right_n]);
+                    right_n++;
+                }
+                var middle = formula.indexOf("/",left);
+                if(middle > 0 && middle < right){
+                    var i = 0;
+                    var hasop = false;
+                    while(i<str.length){
+                        var op = formula.indexOf(str[i],left);
+                        if(op >= 0 && op < right){
+                            hasop =true;
+                        }
+                        i++;
+                    }
+                    if(!hasop){
+                        s.splice(left,1,"");
+                        s.splice(right,1,"");
+                        formula =s.join("");
+                    }
+                }
+                temp[left_n-1] = right;  
+                left = formula.lastIndexOf("(",left-1);
+            }
+            return formula;
+        }
+
+
+        // 判断重复函数
+        var checkRepeat =function(ret,result1){
+            for(var i = 0;i < rpt.length;i++){
+                // 判断长度
+                if(ret.length == rpt.length){
+                    // 判断内容
+                    if(ret.join == rpt[i].join){
+                        // 判断结果
+                        if(result[i] == result1){
+                            return 1;
+                        }
+                    }
+                }
+            }
+            rpt.push(ret);
+            // console.log(rpt)
+            result.push(result1);
+            return 0;
+        }
+        // 运行主函数
+        var main =function(cNum,nNum){
+            var res = [];
+            for(var i = 0; i < nNum;i++){
+                var li = document.createElement('li');
+                var input =document.createElement('input');
+                // input.type = 'number';
+                // input.className = name;
+                input.setAttribute("class", "name"); 
+                do{
+                    var data = ranData();
+                    var putData = ranChange(data);
+                    res.push(ranRes(data));
+                    console.log(ranRes(data));
+                    result1 = ranRes(data);
+                    ret = data.sort();
+                }while(checkRepeat(ret,result1))
+                // while(putData.indexOf("(") >= 0 || putData.indexOf(")") >= 0){
+                //     putData =putData.replace(")","");
+                //     putData =putData.replace("(","");
+                // }
+                putData = delsign(putData);
+                li.innerHTML ="<span class= 'liSpan'>" + (i + 1) + "</span>&#x3000;<span class= 'liSpan1'>" + putData + " = </span>";
+                li.appendChild(input);
+                div.appendChild(li);
+            }
+            return res;
+        }
+
+        var tim
+        // 确认运算式的范围和数量，生成运算式
+        button1.onclick = function(e){
+            var ti = 0;
+            e.preventDefault();
+            if(button2.style.display == "none"){
+                div.innerHTML = "";
+                grade.style.display = "none";
+                n = 0;
+            }
+            nNum = document.getElementById('nNum').value;
+            if(nNum <= 0){
+                nNum = 10;
+            }
+            cNum = document.getElementById('cNum').value;
+            if(cNum <= 0){
+                cNum = 10;
+            }
+            asd = main(cNum, nNum);
+            button1.disabled  = true;
+            button2.style.display = "inline-block";
+            tim = setInterval(function() {
+                ti++
+                timer.innerHTML = ti + "s";
+            }, 1000);
+            time.innerHTML = "您的用时："
+            // tim();
+        }
+
+        // 判断计算的结果，计算正确率
+        button2.onclick = function(e){
+            e.preventDefault();
+            var input =document.querySelectorAll('form input');
+            var li =document.querySelectorAll("form li")
+            for(var i = 0 ; i < input.length;i++){
+                var a = input[i].value;
+                var b = asd[i];
+                // console.log(answer(12));
+                var check = answer(a,b);
+                var span = document.createElement('span');
+                span.setAttribute("class", "span"); 
+                if(check == "right"){
+                    span.style.color = "green";
+                }else{
+                    span.style.color = "red";
+                }
+                span.innerHTML = check;
+                li[i].appendChild(span);
+            }
+            button2.style.display = "none";
+            button1.disabled = false;
+            // grade.innerHTML += (n/nNum).toFixed(4)*100 + "%";
+            numR.innerHTML = n;
+            numW.innerHTML = (nNum - n);
+            grade.style.display = "block";
+            // console.log(n/nNum);
+            clearInterval(tim);
+        }
+
+        simple.onclick =function(e){
+            e.preventDefault();
+            label1.innerHTML = "请输入你要的范围（默认10）";
+            label2.innerHTML = "请输入您要的算式数（默认10）";
+            button1.innerHTML = "确认";
+            button2.innerHTML = "提交";
+            contentR.innerHTML = "正确题目数为：";
+            contentW.innerHTML = "错误题目数为：";
+        }
+
+        traditional.onclick =function(e){
+            e.preventDefault();
+            label1.innerHTML = "請輸入您要的範圍（默認10）";
+            label2.innerHTML = "請輸入您要的算式數（默認10）";
+            button1.innerHTML = "確認";
+            button2.innerHTML = "提交";
+            contentR.innerHTML = "正確題目數為：";
+            contentW.innerHTML = "錯誤題目數為：";
+        }
+
+        english.onclick =function(e){
+            e.preventDefault();
+            label1.innerHTML = "Please enter your range (default 10)";
+            label2.innerHTML = "Please enter the number of calculations you want (default 10)";
+            button1.innerHTML = "Confirm";
+            button2.innerHTML = "Submit";
+            contentR.innerHTML = "The correct number of items is：";
+            contentW.innerHTML = "The wrong number of items is：";
+        }
+    </script>
+</body>
+</html>
